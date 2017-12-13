@@ -1,14 +1,10 @@
-// var mongoose = require('mongoose');
-//
-// mongoose.Promise = global.Promise;
-// mongoose.connect('mongodb://localhost:27017/TodoApp');
 var express = require('express');
 var bodyParser = require('body-parser');
 var {ObjectID} = require('mongodb');
 
-var {mongoose} = require('./db/mongoose.js');
-var {Todo} = require('./models/todo.js');
-var {User} = require('./models/user.js');
+var {mongoose} = require('./db/mongoose');
+var {Todo} = require('./models/todo');
+var {User} = require('./models/user');
 
 var app = express();
 const port = process.env.PORT || 3000;
@@ -32,40 +28,55 @@ app.get('/todos', (req, res) => {
     res.send({todos});
   }, (e) => {
     res.status(400).send(e);
-  })
+  });
 });
 
-// GET/todos/1234123
-//valid id using isValid
-  //404 -send back empty send
-
-//find by id
-  //success
-    // if todo - send it back
-    // if no todo - send back a 404 with empty body
-  //error
-    //400 - and send empty body back
 app.get('/todos/:id', (req, res) => {
   var id = req.params.id;
-  if(!ObjectID.isValid(id)) {
-    res.status(404).send({});
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
   }
 
-  Todo.findById(id).then((todos) => {
-    if(!todos) {
-      res.status(404).send({});
+  Todo.findById(id).then((todo) => {
+    if (!todo) {
+      return res.status(404).send();
     }
-    res.send({todos});
-  }, (e) => {
-    res.status(400).send({});
-  })
 
+    res.send({todo});
+  }).catch((e) => {
+    res.status(400).send();
+  });
+});
+
+app.delete('/todos/:id', (req, res) => {
+  var id = req.params.id;
+
+  if (!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  Todo.findByIdAndRemove(id).then((todo) => {
+    if (!todo) {
+      return res.status(404).send();
+    }
+
+    res.send(todo);
+  }).catch((e) => {
+    res.status(400).send();
+  });
 });
 
 app.listen(port, () => {
-  console.log(`Fired up at port ${port}`);
+  console.log(`Started up at port ${port}`);
 });
 
+module.exports = {app};
+
+// var mongoose = require('mongoose');
+//
+// mongoose.Promise = global.Promise;
+// mongoose.connect('mongodb://localhost:27017/TodoApp');
 //create mongoose model
 // var Todo = mongoose.model('Todo', {
 //   text: {
@@ -118,4 +129,3 @@ app.listen(port, () => {
 // }, (e) => {
 //   console.log('Unable to save user');
 // });
-module.exports = {app};
