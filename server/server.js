@@ -1,18 +1,18 @@
+// the usual suspects
 require('./config/config');
 const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 const {ObjectID} = require('mongodb');
-
 var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
-
 var app = express();
 const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
+// post todo onto todos collection
 app.post('/todos', (req, res) => {
   var todo = new Todo({
     text: req.body.text
@@ -25,6 +25,7 @@ app.post('/todos', (req, res) => {
   });
 });
 
+// get all todo from todos collection
 app.get('/todos', (req, res) => {
   Todo.find().then((todos) => {
     res.send({todos});
@@ -33,6 +34,7 @@ app.get('/todos', (req, res) => {
   });
 });
 
+// get todo from todos collection by id
 app.get('/todos/:id', (req, res) => {
   var id = req.params.id;
 
@@ -51,6 +53,7 @@ app.get('/todos/:id', (req, res) => {
   });
 });
 
+// delete todo from todos collection by id
 app.delete('/todos/:id', (req, res) => {
   var id = req.params.id;
 
@@ -69,6 +72,7 @@ app.delete('/todos/:id', (req, res) => {
   });
 });
 
+// update todo from todos collection by id
 app.patch('/todos/:id', (req, res) => {
   var id = req.params.id;
   var body = _.pick(req.body, ['text', 'completed']);
@@ -96,65 +100,23 @@ app.patch('/todos/:id', (req, res) => {
 
 });
 
+// post new user to users collection
+app.post('/users', (req, res) => {
+  var body = _.pick(req.body, ['email', 'password']);
+  var user = new User(body);
+
+  user.save().then(() => {
+    return user.generateAuthToken();
+  }).then((token) => {
+    res.header('x-auth', token).send(user);
+  }).catch((e) => {
+    res.status(400).send(e);
+  })
+});
+
+// App runs on port
 app.listen(port, () => {
   console.log(`Started up at port ${port}`);
 });
 
 module.exports = {app};
-
-// var mongoose = require('mongoose');
-//
-// mongoose.Promise = global.Promise;
-// mongoose.connect('mongodb://localhost:27017/TodoApp');
-//create mongoose model
-// var Todo = mongoose.model('Todo', {
-//   text: {
-//     type: String,
-//     required: true,
-//     minlength: 1,
-//     trim: true
-//   },
-//   completed: {
-//     type: Boolean,
-//     default: false
-//   },
-//   completedAt: {
-//     type: Number,
-//     default: null
-//   }
-// });
-//
-// var User = mongoose.model('User', {
-//   email: {
-//     type: String,
-//     required: true,
-//     minlength: 1,
-//     trim: true
-//   }
-// });
-
-//create collections
-// var newTodo = new Todo({
-//   text: 'Cook dinner'
-// });
-//
-// var otherTodo = new Todo({
-//   text: '  edit this   video    '
-// });
-//
-// var newUser = new User({
-//   email: '123abcd@gmail.com'
-// });
-//
-// //save collections to database
-// newTodo.save().then((doc) => {
-//   console.log('Saved todo', doc);
-// }, (e) => {
-//   console.log('Unable to save todo');
-// });
-//
-// newUser.save().then((doc) => {
-//   console.log('Saved user', doc);
-// }, (e) => {
-//   console.log('Unable to save user');
-// });
