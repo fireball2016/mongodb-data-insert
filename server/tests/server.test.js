@@ -213,7 +213,7 @@ describe('POST /users/me', () => {
         if (err) {
           return done(err);
         }
-        User.fineOne({email}).then((user) => {
+        User.findOne({email}).then((user) => {
           expect(user).toExist();
           expect(user.password).toNotBe(password);
           done();
