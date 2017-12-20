@@ -52,6 +52,16 @@ return user.save().then(() => {
   });
 };
 
+UserSchema.methods.removeToken = function (token) {
+  var user = this;
+
+  user.update({
+    $pull: {
+      tokens: {token}
+    }
+  });
+};
+
 UserSchema.statics.findByToken = function (token) {
   var User = this;
   var decoded;
